@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 # Translate a list of labels into an array of 0's and one 1.
-# i.e.: 4 -> [0,0,0,0,1,0,0,0,0,0] 
+# i.e.: 4 -> [0,0,0,0,1,0,0,0,0,0]
 def one_hot(x, n):
     if type(x) == list:
         x = np.array(x)
@@ -30,14 +30,22 @@ x = tf.placeholder("float", [None, 4])
 y_ = tf.placeholder("float", [None, 3])
 
 
-W = tf.Variable(np.float32(np.random.rand(4, 3))*0.1)
-b = tf.Variable(np.float32(np.random.rand(3))*0.1)
+W = tf.Variable(np.float32(np.random.rand(4, 5))*0.1)
+b = tf.Variable(np.float32(np.random.rand(5))*0.1)
 
-y = tf.nn.softmax((tf.sigmoid(tf.matmul(x, W) + b)))
+#y = tf.nn.softmax((tf.sigmoid(tf.matmul(x, W) + b)))
+#hidden2 = tf.nn.softmax((tf.sigmoid(tf.matmul(y, W) + b)))
+#logits = tf.matmul(hidden2, W) +b
+y =tf.sigmoid(tf.matmul(x, W) + b)
+
+W2 = tf.Variable(np.float32(np.random.rand(5, 3))*0.1)
+b2 = tf.Variable(np.float32(np.random.rand(3))*0.1)
+
+hidden = tf.nn.relu(tf.nn.softmax(tf.matmul(y, W2) + b2))
 
 
-cross_entropy = tf.reduce_sum(tf.square(y_ - y))
-#cross_entropy = -tf.reduce_sum(y_*tf.log(y))
+#cross_entropy = tf.reduce_sum(tf.square(y_ - hidden))
+cross_entropy = -tf.reduce_sum(y_*tf.log(hidden))
 
 train = tf.train.GradientDescentOptimizer(0.01).minimize(cross_entropy)
 
@@ -51,6 +59,7 @@ print "   Start training...  "
 print "----------------------"
 
 batch_size = 20
+errores = []
 
 for step in xrange(1000):
     for jj in xrange(len(x_data) / batch_size):
@@ -59,14 +68,16 @@ for step in xrange(1000):
 
         sess.run(train, feed_dict={x: batch_xs, y_: batch_ys})
         if step % 50 == 0:
-            print "Iteration #:", step, "Error: ", sess.run(cross_entropy, feed_dict={x: batch_xs, y_: batch_ys})
-            result = sess.run(y, feed_dict={x: batch_xs})
+            error = sess.run(cross_entropy, feed_dict={x: batch_xs, y_: batch_ys})
+            errores.append(error)
+            print "Iteration #:", step, "Error: ", error
+            result = sess.run(hidden, feed_dict={x: batch_xs})
             for b, r in zip(batch_ys, result):
                 print b, "-->", r
+                #print batch_ys
+                #print result
             print "----------------------------------------------------------------------------------"
-            
-            
-            
-            
-            
-            
+
+plt.plot(errores)
+plt.ylabel("Ajuste del error no lineal")
+plt.show()
