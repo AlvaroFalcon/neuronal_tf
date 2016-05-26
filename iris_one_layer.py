@@ -33,16 +33,20 @@ y_ = tf.placeholder("float", [None, 3])
 W = tf.Variable(np.float32(np.random.rand(4, 5))*0.1)
 b = tf.Variable(np.float32(np.random.rand(5))*0.1)
 
+#Codigo auxiliar
 #y = tf.nn.softmax((tf.sigmoid(tf.matmul(x, W) + b)))
 #hidden2 = tf.nn.softmax((tf.sigmoid(tf.matmul(y, W) + b)))
 #logits = tf.matmul(hidden2, W) +b
 y =tf.sigmoid(tf.matmul(x, W) + b)
 
+#Nueva capa oculta para que permite la separacion lineal de las clases.
+
 W2 = tf.Variable(np.float32(np.random.rand(5, 3))*0.1)
 b2 = tf.Variable(np.float32(np.random.rand(3))*0.1)
 
-hidden = tf.nn.relu(tf.nn.softmax(tf.matmul(y, W2) + b2))
+hidden = tf.nn.softmax(tf.matmul(y, W2) + b2)
 
+#Elegimos un metodo para filtrar:
 
 #cross_entropy = tf.reduce_sum(tf.square(y_ - hidden))
 cross_entropy = -tf.reduce_sum(y_*tf.log(hidden))
@@ -69,6 +73,7 @@ for step in xrange(1000):
         sess.run(train, feed_dict={x: batch_xs, y_: batch_ys})
         if step % 50 == 0:
             error = sess.run(cross_entropy, feed_dict={x: batch_xs, y_: batch_ys})
+#Recolectamos los errores en una lista.
             errores.append(error)
             print "Iteration #:", step, "Error: ", error
             result = sess.run(hidden, feed_dict={x: batch_xs})
@@ -77,6 +82,8 @@ for step in xrange(1000):
                 #print batch_ys
                 #print result
             print "----------------------------------------------------------------------------------"
+
+#Mostramos los errores en una grafica para ver que decrementan.
 
 plt.plot(errores)
 plt.ylabel("Ajuste del error no lineal")
